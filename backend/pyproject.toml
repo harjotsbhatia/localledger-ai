@@ -1,0 +1,42 @@
+[project]
+name = "localledger"
+version = "0.1.0"
+description = "LocalLedger AI local backend: encrypted storage, CSV ingestion, deterministic analytics, local LLM tool calling."
+license = "Apache-2.0"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.30",
+    "pydantic>=2.7",
+    "httpx>=0.27",
+    "keyring>=25",
+    "sqlcipher3-wheels>=0.5",
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6", "pyinstaller>=6.6"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["localledger"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S", "SIM"]
+ignore = ["S101", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# Queries are assembled only from fixed fragments in this file; all values are bound parameters.
+"localledger/analytics/core.py" = ["S608"]
+"tests/*" = ["S105", "S106", "S311", "S608", "S104"]
+"localledger/demo/*" = ["S311"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["live_ollama: requires a running Ollama with the configured model"]

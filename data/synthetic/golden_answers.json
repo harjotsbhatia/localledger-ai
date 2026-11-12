@@ -1,0 +1,234 @@
+{
+  "end_date": "2026-11-10",
+  "last_month": "2026-10",
+  "months": {
+    "2025-11": {
+      "by_category_minor": {
+        "Entertainment": 5542,
+        "Groceries": 26937,
+        "Housing": 185000,
+        "Other": 6000,
+        "Restaurants": 33943,
+        "Shopping": 21872,
+        "Subscriptions": 7547,
+        "Transport": 16849,
+        "Utilities": 13931
+      },
+      "count": 41,
+      "income_minor": 650000,
+      "net_minor": 332379,
+      "spending_minor": 317621
+    },
+    "2025-12": {
+      "by_category_minor": {
+        "Entertainment": 11407,
+        "Groceries": 22839,
+        "Housing": 185000,
+        "Restaurants": 22726,
+        "Shopping": 1694,
+        "Subscriptions": 7547,
+        "Transport": 9114,
+        "Utilities": 13762
+      },
+      "count": 38,
+      "income_minor": 650000,
+      "net_minor": 375911,
+      "spending_minor": 274089
+    },
+    "2026-01": {
+      "by_category_minor": {
+        "Entertainment": 6212,
+        "Fees": 1200,
+        "Groceries": 30321,
+        "Health": 3818,
+        "Housing": 185000,
+        "Restaurants": 18380,
+        "Shopping": 24482,
+        "Subscriptions": 7547,
+        "Transport": 6728,
+        "Utilities": 17500
+      },
+      "count": 37,
+      "income_minor": 650000,
+      "net_minor": 348812,
+      "spending_minor": 301188
+    },
+    "2026-02": {
+      "by_category_minor": {
+        "Entertainment": 3622,
+        "Groceries": 31061,
+        "Housing": 185000,
+        "Other": 6000,
+        "Restaurants": 22227,
+        "Shopping": 42222,
+        "Subscriptions": 7547,
+        "Transport": 8213,
+        "Utilities": 18751
+      },
+      "count": 41,
+      "income_minor": 650000,
+      "net_minor": 325357,
+      "spending_minor": 324643
+    },
+    "2026-03": {
+      "by_category_minor": {
+        "Entertainment": 5893,
+        "Groceries": 49477,
+        "Housing": 185000,
+        "Restaurants": 36485,
+        "Shopping": 62248,
+        "Subscriptions": 7547,
+        "Transport": 20394,
+        "Travel": 61740,
+        "Utilities": 18657
+      },
+      "count": 47,
+      "income_minor": 650000,
+      "net_minor": 202559,
+      "spending_minor": 447441
+    },
+    "2026-04": {
+      "by_category_minor": {
+        "Entertainment": 5707,
+        "Groceries": 31637,
+        "Housing": 185000,
+        "Other": 10000,
+        "Restaurants": 22361,
+        "Shopping": 22207,
+        "Subscriptions": 7547,
+        "Transport": 20484,
+        "Utilities": 13596
+      },
+      "count": 44,
+      "income_minor": 650000,
+      "net_minor": 331461,
+      "spending_minor": 318539
+    },
+    "2026-05": {
+      "by_category_minor": {
+        "Fees": 1200,
+        "Groceries": 28662,
+        "Health": 3379,
+        "Housing": 185000,
+        "Restaurants": 51159,
+        "Shopping": 33189,
+        "Subscriptions": 7547,
+        "Transport": 5996,
+        "Utilities": 19640
+      },
+      "count": 45,
+      "income_minor": 650000,
+      "net_minor": 314228,
+      "spending_minor": 335772
+    },
+    "2026-06": {
+      "by_category_minor": {
+        "Entertainment": 1361,
+        "Groceries": 40002,
+        "Health": 8283,
+        "Housing": 185000,
+        "Restaurants": 20519,
+        "Shopping": 11077,
+        "Subscriptions": 7547,
+        "Transport": 4575,
+        "Utilities": 13296
+      },
+      "count": 34,
+      "income_minor": 650000,
+      "net_minor": 358340,
+      "spending_minor": 291660
+    },
+    "2026-07": {
+      "by_category_minor": {
+        "Entertainment": 3136,
+        "Groceries": 46386,
+        "Health": 4669,
+        "Housing": 185000,
+        "Restaurants": 22938,
+        "Shopping": 64737,
+        "Subscriptions": 7547,
+        "Transport": 10372,
+        "Utilities": 21593
+      },
+      "count": 38,
+      "income_minor": 650000,
+      "net_minor": 283622,
+      "spending_minor": 366378
+    },
+    "2026-08": {
+      "by_category_minor": {
+        "Groceries": 50914,
+        "Health": 1496,
+        "Housing": 185000,
+        "Restaurants": 21560,
+        "Shopping": 16382,
+        "Subscriptions": 7547,
+        "Transport": 10536,
+        "Utilities": 18284
+      },
+      "count": 38,
+      "income_minor": 650000,
+      "net_minor": 338281,
+      "spending_minor": 311719
+    },
+    "2026-09": {
+      "by_category_minor": {
+        "Entertainment": 5741,
+        "Fees": 1200,
+        "Groceries": 35618,
+        "Housing": 185000,
+        "Restaurants": 32179,
+        "Shopping": 64703,
+        "Subscriptions": 7547,
+        "Transport": 6492,
+        "Travel": 70000,
+        "Utilities": 13438
+      },
+      "count": 44,
+      "income_minor": 650000,
+      "net_minor": 228082,
+      "spending_minor": 421918
+    },
+    "2026-10": {
+      "by_category_minor": {
+        "Entertainment": 4470,
+        "Groceries": 22056,
+        "Health": 2397,
+        "Housing": 185000,
+        "Restaurants": 34764,
+        "Shopping": 7326,
+        "Subscriptions": 7547,
+        "Transport": 6475,
+        "Utilities": 13480
+      },
+      "count": 38,
+      "income_minor": 650000,
+      "net_minor": 366485,
+      "spending_minor": 283515
+    },
+    "2026-11": {
+      "by_category_minor": {
+        "Groceries": 4459,
+        "Health": 2461,
+        "Housing": 185000,
+        "Restaurants": 20268,
+        "Shopping": 5753,
+        "Subscriptions": 6049,
+        "Transport": 5354,
+        "Utilities": 11323
+      },
+      "count": 20,
+      "income_minor": 325000,
+      "net_minor": 84333,
+      "spending_minor": 240667
+    }
+  },
+  "pending_count": 2,
+  "restaurants_last_month_minor": 34764,
+  "seed": 20260101,
+  "transaction_count": 505,
+  "transactions_by_account": {
+    "Everyday Checking": 169,
+    "Rewards Credit Card": 336
+  }
+}
