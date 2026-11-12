@@ -1,0 +1,27 @@
+# dependencies / builds
+node_modules/
+dist/
+target/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+build/
+*.spec
+desktop/src-tauri/binaries/
+desktop/src-tauri/gen/
+# secrets and local data - never commit
+.env
+.env.*
+!.env.example
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+# real statements must never be committed; only data/synthetic is tracked
+*.csv
+!data/synthetic/*.csv
+evals/reports/*
+!evals/reports/.gitkeep
+.DS_Store
