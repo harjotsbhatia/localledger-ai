@@ -5,13 +5,17 @@ from datetime import date
 from typing import Any
 
 import pytest
+from fastapi.testclient import TestClient
 
+from localledger.api.app import create_app
+from localledger.config import Config
 from localledger.demo.generator import generate
 from localledger.demo.loader import load_demo
 from localledger.llm.base import ChatResponse, LLMUnavailable, ModelInfo
 from localledger.storage.db import Database
 
 TODAY = date(2026, 11, 10)
+TOKEN = "t" * 43
 
 
 class ScriptedProvider:
@@ -68,3 +72,11 @@ def conn(loaded_db):
 def provider() -> ScriptedProvider:
     return ScriptedProvider()
 
+
+@pytest.fixture
+def client(db, tmp_path, provider) -> TestClient:
+    config = Config(data_dir=tmp_path, api_token=TOKEN,
+                    allowed_origins=("tauri://localhost",))
+    app = create_app(config, db, clock=lambda: TODAY, provider_factory=lambda url: provider)
+    return TestClient(app, base_url="http://127.0.0.1:8765",
+                      headers={"Authorization": f"Bearer {TOKEN}"})
