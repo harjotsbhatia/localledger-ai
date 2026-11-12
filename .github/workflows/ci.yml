@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   backend:
-    runs-on: macos-14
+    runs-on: macos-latest
     defaults:
       run:
         working-directory: backend
@@ -23,7 +23,7 @@ jobs:
       - run: uv run pytest -q
 
   frontend:
-    runs-on: macos-14
+    runs-on: macos-latest
     defaults:
       run:
         working-directory: desktop
@@ -49,7 +49,7 @@ jobs:
       - run: pnpm test
 
   shell:
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
       - uses: dtolnay/rust-toolchain@stable
