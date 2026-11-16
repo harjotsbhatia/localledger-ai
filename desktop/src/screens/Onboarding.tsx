@@ -56,8 +56,8 @@ export function Onboarding() {
                 <span>
                   <b className="block text-[14px] text-ink">Honest about bank connections</b>
                   <span className="text-[13px] text-ink-2">
-                    This version imports CSV files only. Future direct bank links use third-party aggregators that do
-                    see your transactions; the app will tell you before you connect one.
+                    CSV import keeps everything on this Mac. Optional bank connections use third-party services
+                    that do see your transactions; the app tells you exactly which one before you connect.
                   </span>
                 </span>
               </li>
