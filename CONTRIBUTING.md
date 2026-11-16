@@ -47,8 +47,15 @@ Generate the token with `openssl rand -hex 32`.
 
 ## Adding a bank connector
 
-Implement `connectors.base.Connector`. Store credentials only in the Keychain, set
-`uses_network = True`, and document exactly what the provider can see.
+1. Implement `connectors.base.BankConnector` (`connect`, `sync`, `disconnect`) and describe
+   honestly in `ProviderInfo.data_path` which third party sees the user's data.
+2. Declare the provider's HTTPS hosts in an `OutboundPolicy` and check every URL with it.
+3. Return amounts as integer minor units with LocalLedger's sign (negative = money out).
+   Parse JSON with `parse_float=Decimal`; `to_minor` rejects floats.
+4. Return credentials only in `NewConnection.secret`. Never log them or put them in an error
+   message: `ConnectorError.message` is shown to the user.
+5. Register it in `connectors/registry.py` and test it with `httpx.MockTransport`. Use only
+   sandbox or demo credentials; never a real bank login.
 
 ## Pull requests
 

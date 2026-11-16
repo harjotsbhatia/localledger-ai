@@ -26,6 +26,10 @@ repository. Include steps to reproduce. Never attach real financial data.
 | 10 | Malicious CSV | Size and row limits; strict amount/date parsing; values stored as text and bound as SQL parameters; React escapes output | Formula injection matters only if data is later exported to a spreadsheet (no export exists) |
 | 11 | Supply chain | Lockfiles committed (`uv.lock`, `pnpm-lock.yaml`, `Cargo.lock`); small dependency set | No automated audit yet |
 | 12 | Webview compromise (XSS) | Strict CSP (`script-src 'self'`, `connect-src` limited to loopback and IPC); the webview has no filesystem, shell or HTTP plugin; only three IPC commands | An XSS could call the local API with the token for the session |
+| 13 | Bank credentials leak (SimpleFIN access URL, Plaid Sandbox secret and access token) | Stored only in the macOS Keychain, one item per connection; never written to the database, API responses or logs (tests assert each); cleared from UI state after submission; destroyed on disconnect and on delete-all-data | Same-user malware (see 4) |
+| 14 | A provider response redirects the app to another host | Per-connector HTTPS host allow-list applied to every URL including ones the provider returns; redirects not followed; proxy environment ignored | A compromised provider can still send false data |
+| 15 | Hostile text from a provider (account names, notices) | Stripped of control characters and length-limited; rendered as text; reaches the model only inside tool results | As for 6 |
+| 16 | Exceeding a provider's usage limits and losing access | SimpleFIN syncs limited locally to one per hour (the Bridge asks for 24 or fewer a day) | Manual syncing across several installs sharing a token is not coordinated |
 
 ## Design decisions
 
@@ -40,20 +44,44 @@ repository. Include steps to reproduce. Never attach real financial data.
 
 ## Network policy
 
-The backend makes outbound connections only to the configured Ollama URL, which must be
-loopback. Offline mode additionally blocks model downloads. There is no telemetry.
+Outbound connections are limited to:
 
-## Bank connectivity (not implemented)
+1. the configured Ollama URL, which must be loopback;
+2. for a SimpleFIN connection, HTTPS hosts under `simplefin.org`;
+3. for a Plaid Sandbox connection, `https://sandbox.plaid.com` only.
 
-When a bank aggregator is used, transaction data passes through that provider's servers.
-LocalLedger will not claim otherwise.
+Items 2 and 3 happen only after the user adds a connection and acknowledges where the data
+travels. Offline mode blocks model downloads and every provider call. There is no telemetry.
 
-**Open blocker for Plaid bring-your-own-credentials:** Plaid's API expects `client_secret`
-and access tokens to be held by a server the developer controls. A desktop app that stores a
-user's own Plaid secret in the Keychain may not meet Plaid's security and compliance
-requirements, and production access requires Plaid's review. This must be checked against
-Plaid's current documentation and terms before any production BYO-credentials work. Sandbox
-integration is planned first. LocalLedger will never ask for bank passwords or scrape bank sites.
+## Bank connectivity
+
+When a bank-data provider is used, transaction data passes through that provider's servers.
+LocalLedger does not claim otherwise, and the connect screen says which provider sees the data.
+
+**SimpleFIN Bridge.** The user creates a setup token at the Bridge; the app exchanges it once
+for a read-only access URL. The bank password never reaches the app. Access can be revoked
+only on the Bridge website, so disconnecting removes the local credentials and says so. A
+rejected token is reported with the Bridge's warning that someone else may have claimed it.
+
+**Plaid: Sandbox only.** The connector creates items with the Sandbox-only
+`/sandbox/public_token/create` endpoint, so no Plaid Link script is loaded and the app's
+content security policy is unchanged. The host is fixed in code; there is no setting that
+selects production.
+
+**Why Plaid production is not offered (open blocker).** Checked against Plaid's documentation
+and developer policy (effective 2026-04-19):
+
+- The policy makes the developer solely responsible for the confidentiality of the client ID
+  and secret and forbids sharing them with third parties. It does not address a desktop app
+  in which each user supplies their own keys.
+- Production access requires Plaid's review of the application and use case.
+- Real items require Plaid Link. In a desktop app that means loading Plaid's script into the
+  webview or using Hosted Link, whose completion is reported by webhook or by polling.
+- End-user data must be encrypted in storage and transit, which this app does, but that alone
+  does not settle the points above.
+
+Until Plaid confirms that a bring-your-own-keys desktop model is acceptable, production
+support should not be added. LocalLedger will never ask for bank passwords or scrape bank sites.
 
 ## Distribution status
 
