@@ -1,9 +1,16 @@
 import { Trash2 } from "lucide-react";
 import { useState } from "react";
 import { useAccounts, useDeleteAccount, useLoadDemo } from "../api/hooks";
+import { BankConnections } from "../components/BankConnections";
 import { ImportFlow } from "../components/ImportFlow";
 import { Badge, Button, Card, CardTitle, Notice, PageHeader } from "../components/ui";
 import { formatDate } from "../lib/format";
+
+const CONNECTOR_LABELS: Record<string, string> = {
+  csv: "CSV import",
+  simplefin: "SimpleFIN",
+  plaid_sandbox: "Plaid Sandbox",
+};
 
 export function Accounts() {
   const accounts = useAccounts();
@@ -15,7 +22,7 @@ export function Accounts() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Accounts"
-        subtitle="Bring transactions in from files. Everything is stored encrypted on this Mac."
+        subtitle="Bring transactions in from files or a bank connection. Everything is stored encrypted on this Mac."
         actions={
           <Button onClick={() => demo.mutate()} disabled={demo.isPending}>
             {demo.isPending ? "Loading…" : "Load synthetic demo data"}
@@ -39,7 +46,7 @@ export function Accounts() {
                 <div className="flex items-center gap-2 text-[14px] font-medium text-ink">
                   {a.name}
                   <Badge>{a.type.replace("_", " ")}</Badge>
-                  <Badge tone="accent">CSV import</Badge>
+                  <Badge tone="accent">{CONNECTOR_LABELS[a.connector] ?? a.connector}</Badge>
                 </div>
                 <div className="mt-0.5 text-xs text-ink-3">
                   {a.transaction_count.toLocaleString()} transactions
@@ -72,14 +79,7 @@ export function Accounts() {
 
       <ImportFlow />
 
-      <Card>
-        <CardTitle hint="Not available in this version">Direct bank connections</CardTitle>
-        <p className="text-[13px] text-ink-2">
-          Plaid and SimpleFIN connectors are planned but <b>not implemented</b>. When they arrive, your transactions will
-          pass through that provider's servers on the way to this Mac, and the app will say so clearly before you
-          connect. LocalLedger will never ask for your bank password or scrape a bank website.
-        </p>
-      </Card>
+      <BankConnections />
     </div>
   );
 }

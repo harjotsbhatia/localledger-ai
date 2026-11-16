@@ -55,8 +55,9 @@ export function Privacy() {
             registry. No financial data is involved.
           </li>
           <li>
-            <b className="text-ink">Bank connections:</b> not available yet. Aggregators such as Plaid would see your
-            transactions; this will be stated before you connect one.
+            <b className="text-ink">Bank connections:</b> only if you add one. Your transactions then pass through
+            that provider (SimpleFIN Bridge and its data partner) on their way here, and the app contacts only that
+            provider's servers. Access tokens are kept in your Keychain. Plaid is limited to its Sandbox test data.
           </li>
           <li>
             <b className="text-ink">Analytics and telemetry:</b> none.
@@ -65,7 +66,7 @@ export function Privacy() {
         <label className="mt-4 flex items-center justify-between border-t border-line pt-4">
           <span>
             <span className="block text-[13px] font-medium text-ink">Offline mode</span>
-            <span className="text-xs text-ink-3">Blocks model downloads and, later, bank syncing. Analysis keeps working.</span>
+            <span className="text-xs text-ink-3">Blocks model downloads and all bank syncing. Analysis keeps working.</span>
           </span>
           <input
             type="checkbox"
