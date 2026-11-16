@@ -9,13 +9,15 @@ from pathlib import Path
 
 from localledger.api.app import create_app
 from localledger.config import Config
+from localledger.connectors.registry import default_connectors
 from localledger.storage.db import Database
 
 
 def main() -> None:
     with tempfile.TemporaryDirectory() as tmp:
         config = Config(data_dir=Path(tmp), api_token="x" * 32)
-        app = create_app(config, Database(config.db_path, b"\0" * 32))
+        app = create_app(config, Database(config.db_path, b"\0" * 32),
+                         connectors=default_connectors())
         app.openapi_url = "/openapi.json"
         schema = json.dumps(app.openapi(), indent=2, sort_keys=True) + "\n"
     if len(sys.argv) > 1:

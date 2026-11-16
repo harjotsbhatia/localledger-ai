@@ -69,6 +69,28 @@ MIGRATIONS: list[str] = [
         value TEXT NOT NULL
     );
     """,
+    # 2: bank connections. Provider credentials are NOT stored here; they live in the
+    # OS keychain under the connection's id. Only non-secret sync state is kept.
+    """
+    CREATE TABLE connections (
+        id INTEGER PRIMARY KEY,
+        provider TEXT NOT NULL,
+        label TEXT NOT NULL,
+        status TEXT NOT NULL DEFAULT 'active',
+        sync_cursor TEXT,
+        last_synced_at TEXT,
+        last_attempt_at TEXT,
+        last_error TEXT,
+        created_at TEXT NOT NULL DEFAULT (datetime('now'))
+    );
+    ALTER TABLE accounts ADD COLUMN connection_id INTEGER
+        REFERENCES connections(id) ON DELETE SET NULL;
+    ALTER TABLE accounts ADD COLUMN external_id TEXT;
+    ALTER TABLE transactions ADD COLUMN external_id TEXT;
+    CREATE UNIQUE INDEX idx_accounts_external ON accounts(connection_id, external_id)
+        WHERE external_id IS NOT NULL;
+    CREATE INDEX idx_tx_external ON transactions(account_id, external_id);
+    """,
 ]
 
 
@@ -130,7 +152,7 @@ class Database:
 
     def delete_all_data(self) -> None:
         with self.connect() as conn:
-            for table in ("transactions", "imports", "accounts", "settings"):
+            for table in ("transactions", "imports", "accounts", "connections", "settings"):
                 conn.execute(f"DELETE FROM {table}")  # noqa: S608 - fixed table names
         with self.connect() as conn:
             conn.isolation_level = None

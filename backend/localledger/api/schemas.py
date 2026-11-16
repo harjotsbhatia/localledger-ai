@@ -185,3 +185,12 @@ class DemoResult(BaseModel):
 class ErrorDetail(BaseModel):
     code: str
     message: str
+
+
+class ConnectRequest(BaseModel):
+    provider: str = Field(max_length=40)
+    params: dict[str, str] = Field(max_length=8)
+
+
+class DisconnectResult(BaseModel):
+    notes: list[str]

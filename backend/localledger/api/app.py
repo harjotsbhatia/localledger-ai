@@ -18,6 +18,9 @@ from localledger.analytics import core
 from localledger.analytics.periods import PeriodError, resolve_period, resolve_range
 from localledger.api import schemas as s
 from localledger.config import Config
+from localledger.connectors.base import BankConnector, ConnectorError, ProviderInfo
+from localledger.connectors.service import Connection, ConnectionService, list_connections
+from localledger.connectors.store import SyncResult
 from localledger.demo.loader import load_demo
 from localledger.ingestion.categorize import CATEGORIES
 from localledger.ingestion.csv_parser import CsvError, CsvPreview, preview
@@ -25,6 +28,7 @@ from localledger.ingestion.importer import ImportResult, import_csv
 from localledger.llm.base import LLMError, LLMProvider
 from localledger.llm.ollama import OllamaProvider, validate_local_url
 from localledger.security.http import LocalApiGuard
+from localledger.security.secrets import MemorySecretStore, SecretStore
 from localledger.storage.db import Database
 
 ProviderFactory = Callable[[str], LLMProvider]
@@ -63,6 +67,8 @@ def create_app(
     clock: Callable[[], date] = date.today,
     provider_factory: ProviderFactory = OllamaProvider,
     log_requests: bool = False,
+    secrets: SecretStore | None = None,
+    connectors: dict[str, BankConnector] | None = None,
 ) -> FastAPI:
     app = FastAPI(title="LocalLedger local API", version=__version__,
                   docs_url=None, redoc_url=None, openapi_url=None)
@@ -76,6 +82,8 @@ def create_app(
     )
     if log_requests:
         app.add_middleware(DevRequestLog)  # outermost: also sees rejected requests
+
+    connections = ConnectionService(db, secrets or MemorySecretStore(), connectors or {})
 
     pull_state: dict[str, Any] = {"model": None, "state": "idle", "detail": "",
                                   "completed_bytes": 0, "total_bytes": 0}
@@ -156,6 +164,63 @@ def create_app(
         return s.DemoResult(accounts=len(results),
                             rows_inserted=sum(r.rows_inserted for r in results),
                             rows_duplicate=sum(r.rows_duplicate for r in results))
+
+    # ---- bank connections -----------------------------------------------------------
+    # These are the only routes that cause the backend to contact a third party.
+    def require_online() -> None:
+        with db.connect() as conn:
+            if read_settings(conn).offline_mode:
+                raise _error(409, "offline_mode",
+                             "Offline mode is on. Turn it off to contact a bank provider.")
+
+    def connector_error(exc: ConnectorError) -> HTTPException:
+        return _error(409 if exc.needs_attention else 502, exc.code, exc.message)
+
+    @app.get("/api/connections/providers", response_model=list[ProviderInfo])
+    def providers() -> list[ProviderInfo]:
+        return [c.info for c in connections.connectors.values()]
+
+    @app.get("/api/connections", response_model=list[Connection])
+    def get_connections(conn: Any = Depends(conn_dep)) -> list[Connection]:
+        return list_connections(conn)
+
+    @app.post("/api/connections", response_model=SyncResult, status_code=201)
+    def connect(body: s.ConnectRequest) -> SyncResult:
+        require_online()
+        try:
+            connection_id = connections.connect(body.provider, body.params)
+        except ConnectorError as exc:
+            status = 404 if exc.code == "unknown_provider" else 400
+            raise _error(status, exc.code, exc.message) from exc
+        try:
+            return connections.sync(connection_id, clock(), force=True)
+        except ConnectorError as exc:
+            # Connected, but the first fetch failed. Keep the connection; report why.
+            return SyncResult(connection_id=connection_id, accounts=0, added=0, updated=0,
+                              removed=0, messages=[exc.message])
+
+    @app.post("/api/connections/{connection_id}/sync", response_model=SyncResult)
+    def sync_connection(connection_id: int) -> SyncResult:
+        require_online()
+        try:
+            return connections.sync(connection_id, clock())
+        except LookupError as exc:
+            raise _error(404, "not_found", str(exc)) from exc
+        except ConnectorError as exc:
+            if exc.code == "rate_limited":
+                raise _error(429, exc.code, exc.message) from exc
+            raise connector_error(exc) from exc
+
+    @app.delete("/api/connections/{connection_id}", response_model=s.DisconnectResult)
+    def disconnect(connection_id: int, delete_data: bool = False) -> s.DisconnectResult:
+        with db.connect() as conn:
+            offline = read_settings(conn).offline_mode
+        try:
+            notes = connections.disconnect(connection_id, delete_data=delete_data,
+                                           offline=offline)
+        except LookupError as exc:
+            raise _error(404, "not_found", str(exc)) from exc
+        return s.DisconnectResult(notes=notes)
 
     # ---- transactions & analytics ---------------------------------------------------
     @app.get("/api/categories", response_model=list[str])
@@ -296,6 +361,8 @@ def create_app(
     # ---- privacy --------------------------------------------------------------------
     @app.post("/api/data/delete", status_code=204)
     def delete_data(body: s.DeleteRequest) -> None:
+        # Bank credentials go first, so nothing is left behind in the keychain.
+        connections.forget_all_credentials()
         db.delete_all_data()
 
     return app

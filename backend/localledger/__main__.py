@@ -11,8 +11,10 @@ import uvicorn
 
 from localledger.api.app import create_app
 from localledger.config import load_config
+from localledger.connectors.registry import default_connectors
 from localledger.security.keys import get_or_create_db_key
 from localledger.security.logging import configure_logging
+from localledger.security.secrets import KeychainSecretStore
 from localledger.storage.db import Database
 
 
@@ -51,7 +53,8 @@ def main() -> None:
         db = Database(config.db_path, get_or_create_db_key())
     db.migrate()
     dev = os.environ.get("LOCALLEDGER_DEV") == "1"
-    uvicorn.run(create_app(config, db, log_requests=dev), host="127.0.0.1", port=config.port,
+    uvicorn.run(create_app(config, db, log_requests=dev, secrets=KeychainSecretStore(),
+                           connectors=default_connectors()), host="127.0.0.1", port=config.port,
                 access_log=False, log_level="warning")
 
 

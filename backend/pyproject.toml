@@ -39,4 +39,7 @@ ignore = ["S101", "B008"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["live_ollama: requires a running Ollama with the configured model"]
+markers = [
+    "live_ollama: requires a running Ollama with the configured model",
+    "live_network: contacts a real bank-data provider; opt-in via environment variables",
+]
