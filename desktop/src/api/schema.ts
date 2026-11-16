@@ -107,6 +107,75 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Connections */
+        get: operations["get_connections_api_connections_get"];
+        put?: never;
+        /** Connect */
+        post: operations["connect_api_connections_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/connections/providers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Providers */
+        get: operations["providers_api_connections_providers_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/connections/{connection_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Disconnect */
+        delete: operations["disconnect_api_connections__connection_id__delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/connections/{connection_id}/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Sync Connection */
+        post: operations["sync_connection_api_connections__connection_id__sync_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/data/delete": {
         parameters: {
             query?: never;
@@ -408,6 +477,34 @@ export interface components {
             /** Status */
             status?: string | null;
         };
+        /** ConnectRequest */
+        ConnectRequest: {
+            /** Params */
+            params: {
+                [key: string]: string;
+            };
+            /** Provider */
+            provider: string;
+        };
+        /** Connection */
+        Connection: {
+            /** Account Count */
+            account_count: number;
+            /** Id */
+            id: number;
+            /** Label */
+            label: string;
+            /** Last Error */
+            last_error: string | null;
+            /** Last Synced At */
+            last_synced_at: string | null;
+            /** Provider */
+            provider: string;
+            /** Status */
+            status: string;
+            /** Transaction Count */
+            transaction_count: number;
+        };
         /** CsvPreview */
         CsvPreview: {
             /** Date Formats */
@@ -438,6 +535,18 @@ export interface components {
             rows_duplicate: number;
             /** Rows Inserted */
             rows_inserted: number;
+        };
+        /** DisconnectResult */
+        DisconnectResult: {
+            /** Notes */
+            notes: string[];
+        };
+        /** FieldOption */
+        FieldOption: {
+            /** Label */
+            label: string;
+            /** Value */
+            value: string;
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -565,6 +674,45 @@ export interface components {
             /** Content */
             content: string;
         };
+        /** ProviderField */
+        ProviderField: {
+            /**
+             * Help
+             * @default
+             */
+            help: string;
+            /** Label */
+            label: string;
+            /** Name */
+            name: string;
+            /**
+             * Options
+             * @default []
+             */
+            options: components["schemas"]["FieldOption"][];
+            /**
+             * Secret
+             * @default false
+             */
+            secret: boolean;
+        };
+        /** ProviderInfo */
+        ProviderInfo: {
+            /** Data Path */
+            data_path: string;
+            /** Description */
+            description: string;
+            /** Display Name */
+            display_name: string;
+            /** Environment */
+            environment: string;
+            /** Fields */
+            fields: components["schemas"]["ProviderField"][];
+            /** Id */
+            id: string;
+            /** Min Sync Interval Seconds */
+            min_sync_interval_seconds: number;
+        };
         /** PullRequest */
         PullRequest: {
             /** Model */
@@ -637,6 +785,21 @@ export interface components {
             ollama_url?: string | null;
             /** Onboarding Complete */
             onboarding_complete?: boolean | null;
+        };
+        /** SyncResult */
+        SyncResult: {
+            /** Accounts */
+            accounts: number;
+            /** Added */
+            added: number;
+            /** Connection Id */
+            connection_id: number;
+            /** Messages */
+            messages: string[];
+            /** Removed */
+            removed: number;
+            /** Updated */
+            updated: number;
         };
         /** ToolTrace */
         ToolTrace: {
@@ -882,6 +1045,143 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["AgentResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_connections_api_connections_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Connection"][];
+                };
+            };
+        };
+    };
+    connect_api_connections_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ConnectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    providers_api_connections_providers_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProviderInfo"][];
+                };
+            };
+        };
+    };
+    disconnect_api_connections__connection_id__delete: {
+        parameters: {
+            query?: {
+                delete_data?: boolean;
+            };
+            header?: never;
+            path: {
+                connection_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DisconnectResult"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sync_connection_api_connections__connection_id__sync_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                connection_id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SyncResult"];
                 };
             };
             /** @description Validation Error */
