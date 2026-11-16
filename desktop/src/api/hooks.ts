@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api, type S } from "./client";
 
-const DATA_KEYS = ["accounts", "overview", "transactions", "recurring"];
+const DATA_KEYS = ["accounts", "overview", "transactions", "recurring", "connections"];
 
 function useInvalidateData() {
   const client = useQueryClient();
@@ -128,3 +128,43 @@ export const useStartPull = () =>
 
 export const sendChat = (messages: S["ChatTurn"][]) =>
   api<S["AgentResult"]>("/api/chat", { method: "POST", body: { messages } });
+
+export const useProviders = () =>
+  useQuery({
+    queryKey: ["providers"],
+    queryFn: () => api<S["ProviderInfo"][]>("/api/connections/providers"),
+    staleTime: Infinity,
+  });
+
+export const useConnections = () =>
+  useQuery({ queryKey: ["connections"], queryFn: () => api<S["Connection"][]>("/api/connections") });
+
+export function useConnect() {
+  const invalidate = useInvalidateData();
+  return useMutation({
+    mutationFn: (body: S["ConnectRequest"]) =>
+      api<S["SyncResult"]>("/api/connections", { method: "POST", body }),
+    onSuccess: invalidate,
+  });
+}
+
+export function useSyncConnection() {
+  const invalidate = useInvalidateData();
+  return useMutation({
+    mutationFn: (id: number) => api<S["SyncResult"]>(`/api/connections/${id}/sync`, { method: "POST" }),
+    // A failed sync changes the connection's status too, so refresh either way.
+    onSettled: invalidate,
+  });
+}
+
+export function useDisconnect() {
+  const invalidate = useInvalidateData();
+  return useMutation({
+    mutationFn: ({ id, deleteData }: { id: number; deleteData: boolean }) =>
+      api<S["DisconnectResult"]>(`/api/connections/${id}`, {
+        method: "DELETE",
+        params: { delete_data: deleteData ? "true" : "false" },
+      }),
+    onSuccess: invalidate,
+  });
+}
