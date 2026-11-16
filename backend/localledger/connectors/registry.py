@@ -1,0 +1,10 @@
+"""The bank connectors this build ships with."""
+
+from __future__ import annotations
+
+from localledger.connectors.base import BankConnector
+
+
+def default_connectors() -> dict[str, BankConnector]:
+    connectors: list[BankConnector] = []
+    return {c.info.id: c for c in connectors}
