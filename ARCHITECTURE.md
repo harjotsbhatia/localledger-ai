@@ -13,19 +13,22 @@
 │   api/         routes, typed schemas (OpenAPI → TypeScript)              │
 │   security/    Host + token guard, keychain, logging policy              │
 │   ingestion/   CSV parsing, mapping, normalization, categorization, dedup│
-│   connectors/  Connector protocol (CSV today; Plaid/SimpleFIN later)     │
+│   connectors/  BankConnector protocol; SimpleFIN and Plaid Sandbox       │
 │   analytics/   deterministic calculations, period resolution             │
 │   agent/       tool registry, tool-calling loop, grounding check         │
 │   llm/         LLMProvider protocol → OllamaProvider                     │
 │   storage/     SQLCipher database, migrations                            │
 │   demo/        seeded synthetic data generator                           │
 └──────────────────────────────────────────────────────────────────────────┘
-        │ loopback only                         │
-   Ollama (127.0.0.1:11434)              macOS Keychain (database key)
+        │ loopback only            │                      │ HTTPS, allow-listed hosts
+   Ollama (127.0.0.1:11434)   macOS Keychain            SimpleFIN Bridge / sandbox.plaid.com
+                              (database key,            (only if the user adds a connection)
+                               bank credentials)
 ```
 
-There is no developer-operated server. The only network peers are Ollama on loopback and,
-when the user explicitly downloads a model, Ollama's own registry.
+There is no developer-operated server. The network peers are Ollama on loopback, Ollama's
+registry when the user explicitly downloads a model, and a bank-data provider if the user
+adds a connection.
 
 ## Layers and their contracts
 
@@ -37,8 +40,30 @@ when the user explicitly downloads a model, Ollama's own registry.
 | Analytics | normalized `transactions` rows | where rows came from |
 | Connectors | their source format | analytics, AI |
 
-Adding a bank provider means implementing `connectors.base.Connector` and writing normalized
-rows. Analytics and the assistant do not change.
+Adding a bank provider means implementing `connectors.base.BankConnector`. Analytics and the
+assistant do not change.
+
+## Bank connectors
+
+```
+connect(params) ──▶ NewConnection(label, secret) ──▶ secret → Keychain, row → connections
+sync(secret, cursor, since) ──▶ SyncBatch(accounts, upserts, removed ids, cursor, messages)
+                                      │
+                         connectors.store.apply_batch (one transaction)
+```
+
+- A connector returns provider-neutral data: integer minor units with LocalLedger's sign
+  (Plaid's is inverted; SimpleFIN's matches), a stable `external_id`, and an optional link
+  from a posted transaction to the pending one it replaces.
+- `apply_batch` upserts by `sha256(connection id, external id)`, so repeated and overlapping
+  syncs are idempotent, modified rows update in place and removed rows are deleted.
+- Provider calls happen outside any database transaction. Credentials travel only between
+  the connector and the Keychain; the database stores the cursor, status and last error.
+- Each connector declares its HTTPS hosts. URLs returned by a provider are checked against
+  that list before use, redirects are not followed and proxy environment variables are ignored.
+- Amounts are parsed with `Decimal` straight from the JSON text; a float is rejected.
+- Offline mode blocks connect and sync. Disconnect always deletes the local credentials,
+  revokes at the provider where the provider allows it, and optionally deletes imported data.
 
 ## Data conventions
 
@@ -91,6 +116,7 @@ CI regenerates both and fails if they differ from what is committed.
 | Desktop shell starts and reaches the sidecar | Dev build and release bundle launched; sidecar request log showed the webview's calls |
 | Real model answers the milestone question | `tests/integration/test_live_ollama.py`, and by hand in the UI |
 | UI screens render with real data | Driven in a browser against the real backend (dark and light) |
+| Bank connectors behave per the provider documentation | Simulated HTTP responses built from the published API shapes. **Not yet run against the live services** |
 
 Not verified by automation: the native open panel and window dragging (they need a human at
 the screen), and behavior on Intel Macs.

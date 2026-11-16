@@ -4,9 +4,11 @@ A privacy-first personal finance assistant for macOS. Your transactions are stor
 encrypted database on your own Mac, and questions are answered by a language model running
 locally in [Ollama](https://ollama.com). No cloud account, no telemetry.
 
-> **Status: Phase 1 (working local MVP).** CSV import, dashboard, and the local AI assistant
-> work and are tested. Bank connections (Plaid, SimpleFIN), RAG, and a signed installer are
-> **not implemented yet**. See [What works and what doesn't](#what-works-and-what-doesnt).
+> **Status: Phase 2 in progress.** CSV import, dashboard and the local AI assistant work and
+> are tested. Bank connections exist for **SimpleFIN Bridge** and **Plaid Sandbox (test data
+> only)**; both are tested against simulated provider responses, not yet against the live
+> services. Connecting real banks through Plaid, RAG, and a signed installer are **not
+> implemented**. See [What works and what doesn't](#what-works-and-what-doesnt).
 
 ## How it answers questions
 
@@ -30,7 +32,8 @@ If the model writes an amount the tools did not produce, the answer is flagged a
 | CSV import, dashboard, analytics | No |
 | AI questions and answers | No. Only loopback Ollama URLs are accepted |
 | Downloading a model | Ollama fetches the model from its registry, only when you click Download. No financial data is sent |
-| Bank connections (future) | **Yes.** Aggregators such as Plaid see your transactions. Not implemented; the app will say so before you connect |
+| SimpleFIN connection (optional) | **Yes.** Your transactions pass through the SimpleFIN Bridge and its data partner. The app states this and asks you to acknowledge it before connecting. Only that provider's hosts are contacted, over HTTPS |
+| Plaid Sandbox (optional) | Requests go to `sandbox.plaid.com` with your own Sandbox keys. The data is fabricated by Plaid |
 | Analytics / telemetry | None |
 
 ## Requirements
@@ -135,17 +138,31 @@ on each lookup.
 - Ollama integration behind a provider interface; seven schema-validated read-only tools
 - Grounding check, tool trace in the UI, graceful handling of model and tool errors
 - Offline mode, delete-account and delete-all-data
-- 129 backend tests, 10 frontend tests, a live-model test, an evaluation runner
+- Bank connector framework: provider-neutral sync with idempotent upserts, pending-to-posted
+  replacement, removals, per-provider rate limiting, credentials only in the Keychain,
+  an HTTPS host allow-list per provider, disconnect with optional data deletion
+- SimpleFIN Bridge connector (claim, sync, 90-day windows, protocol v2 with v1 fallback)
+- Plaid **Sandbox** connector (item creation without Link, cursor sync with pagination and
+  restart on mutation, item removal)
+- 177 backend tests, 14 frontend tests, a live-model test, an evaluation runner
 
 **Not implemented**
 
-- Plaid and SimpleFIN connectors (only the connector interface exists)
+- Plaid production (real banks). Blocked on Plaid Link, Plaid's approval and the
+  compliance question in `SECURITY.md`. The connector is hard-wired to the Sandbox host
+- Automatic background syncing, balances, investment holdings
 - RAG over documents, forecasting, full evaluation suite and model comparison reports
 - Developer ID signing, notarization, `.dmg`, Intel/universal builds, auto-update
 - Multi-currency totals (one currency is assumed), European decimal commas (rejected, not guessed),
   editing categories, chat history persistence, streaming replies
 
 **Known limitations**
+
+- The bank connectors have **not been run against the live services**. Opt-in tests exist:
+  `LOCALLEDGER_LIVE_NETWORK=1 uv run pytest -m live_network` (SimpleFIN's public demo token)
+  and `PLAID_CLIENT_ID=... PLAID_SANDBOX_SECRET=... uv run pytest -m live_network`.
+- SimpleFIN access can be revoked only on the Bridge website; disconnecting here removes the
+  local credentials and tells you so.
 
 - The bundled sidecar is a single-file executable and takes around 8 seconds to start cold.
 - Small models make mistakes. Amounts are verified; wording and date interpretation are not.
